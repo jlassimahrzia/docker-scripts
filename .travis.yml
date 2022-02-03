@@ -1,0 +1,15 @@
+language: generic
+
+services:
+  - docker
+
+branches:
+  only:
+    - docker
+
+script:
+  - docker login -u "$CI_DEPLOY_USER" -p "$CI_DEPLOY_PASSWORD" "$CI_REGISTRY"
+  - travis_wait docker build --pull -t  "$CI_REGISTRY_CLIENTSIDE_IMAGE" ./clientSide # Build clientside image
+  - docker push "$CI_REGISTRY_CLIENTSIDE_IMAGE":latest # pushes the create clientside image to gitlab registry
+  - docker build --pull -t "$CI_REGISTRY_SERVERSIDE_IMAGE" ./serverSide # Build serverside image
+  - docker push "$CI_REGISTRY_SERVERSIDE_IMAGE":latest # pushes the create serverside image to gitlab registry

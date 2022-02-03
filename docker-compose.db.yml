@@ -1,0 +1,40 @@
+# Example with an existent database
+version: '3'
+
+services:
+
+    frontend:
+        image: registry.gitlab.com/project-or-group/project-name/image-name:tag
+        tty: true # because sometimes the backend will be killed before the frontend end runs
+        restart: always
+        ports:
+            - "80:80"     # Ports mapping 
+        depends_on: 
+            - backend
+        networks: 
+            - app
+
+    backend:
+        image: registry.gitlab.com/project-or-group/project-name/image-name:tag
+        tty: true
+        environment: 
+            DB_HOST: remotemysql.com
+            DB_DATABASE: 
+            DB_USERNAME: 
+            DB_PASSWORD: 
+            DB_PORT: 
+            DB_CONNECTION: mysql
+            APP_ENV: production
+            APP_DEBUG: "false"
+            MODE: PRODUCTION
+        restart: always
+        ports: #apache is running on port 80 
+            - "8000:80"   # Ports mapping
+        depends_on: 
+            - db 
+        networks: 
+            - app
+
+networks:
+    app:
+        driver: bridge # Bridge networks apply to containers running on the same Docker daemon host 

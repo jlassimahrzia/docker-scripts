@@ -1,0 +1,69 @@
+version: '3'
+
+services:
+
+    frontend:
+        # image: Local Image ref
+        # gitlab Image ref => registry.gitlab.com/project-or-group/project-name/image-name:tag
+        image: registry.gitlab.com/project-or-group/project-name/image-name:tag
+        build:              
+            context: # Dockerfile path
+            dockerfile: Dockerfile # Dockerfile name
+        tty: true # because sometimes the backend will be killed before the frontend end runs
+        restart: always
+        ports:
+            - "80:80"     # Ports mapping 
+        depends_on: 
+            - backend
+        networks: 
+            - app
+
+    backend:
+        # image: serversideia # Local Image ref
+        # gitlab Image ref # registry.gitlab.com/project-or-group/project-name/image-name:tag
+        image: registry.gitlab.com/project-or-group/project-name/image-name:tag
+        build:              
+            context: # Dockerfile path
+            dockerfile: Dockerfile # Dockerfile name
+        environment: 
+            DB_HOST: db
+            DB_DATABASE: #database name
+            DB_USERNAME: root
+            DB_PASSWORD: 
+            APP_ENV: production
+            APP_DEBUG: "false"
+            MODE: PRODUCTION
+        tty: true
+        restart: always
+        ports: #apache is running on port 80 
+            - "8000:80"   # Ports mapping
+        depends_on: 
+            - db 
+        networks: 
+            - app
+
+    db: 
+        image: mysql:5.7 
+        restart: always
+        tty: true
+        ports:
+            - 3306:3306
+        environment:
+            - MYSQL_DATABASE= #database name
+            - MYSQL_ALLOW_EMPTY_PASSWORD=1 # MYSQL_ROOT_PASSWORD is Empty
+            - MYSQL_ROOT_PASSWORD=
+            #- MYSQL_ROOT_HOST=
+            #- MYSQL_PASSWORD=
+            #- MYSQL_USER=root
+        # we mount a datavolume to make sure we don't loose data
+        volumes:
+            - db_data:/var/lib/mysql
+        networks: 
+            - app
+        
+volumes:
+    db_data:
+
+networks:
+    app:
+        driver: bridge # Bridge networks apply to containers running on the same Docker daemon host 
